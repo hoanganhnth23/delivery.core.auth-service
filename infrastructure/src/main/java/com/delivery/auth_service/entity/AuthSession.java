@@ -1,0 +1,166 @@
+package com.delivery.auth_service.entity;
+
+import com.delivery.auth_service.entity.AuthAccount;
+
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "auth_session")
+public class AuthSession {
+
+    public enum DeviceType {
+        MOBILE, WEB, TABLET;
+
+        // Thêm method chuyển từ chuỗi sang enum (case insensitive)
+        @JsonCreator
+        public static DeviceType fromString(String value) {
+            if (value == null) return null;
+            return DeviceType.valueOf(value.trim().toUpperCase());
+        }
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auth_id", nullable = false)
+    private AuthAccount authAccount;
+
+    @Column(name = "device_id", nullable = false)
+    private String deviceId;
+
+    @Column(name = "device_name")
+    private String deviceName;
+
+    @Convert(converter = DeviceTypeConverter.class)
+    @Column(name = "device_type")
+    private DeviceType deviceType;
+
+    @Column(name = "ip_address")
+    private String ipAddress;
+
+    @Column(name = "token_family_id", nullable = false, unique = true, length = 36)
+    private String tokenFamilyId;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (this.lastLoginAt == null) {
+            this.lastLoginAt = this.createdAt;
+        }
+    }
+
+    // Getters & Setters (giữ nguyên)
+
+    public Long getId() {
+        return id;
+    }
+
+    public AuthAccount getAuthAccount() {
+        return authAccount;
+    }
+
+    public void setAuthAccount(AuthAccount authAccount) {
+        this.authAccount = authAccount;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    public DeviceType getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(DeviceType deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getTokenFamilyId() {
+        return tokenFamilyId;
+    }
+
+    public void setTokenFamilyId(String tokenFamilyId) {
+        this.tokenFamilyId = tokenFamilyId;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+}

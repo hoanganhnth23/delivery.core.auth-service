@@ -1,0 +1,255 @@
+package com.delivery.auth_service.entity;
+
+import jakarta.persistence.*;
+import com.delivery.identity.contracts.IdentityLifecycleStatus;
+import com.delivery.identity.contracts.SimulationContext;
+import java.util.UUID;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "auth_account", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
+public class AuthAccount {
+
+    public enum Role {
+        USER,
+        ADMIN,
+        SHIPPER,
+        SHOP_OWNER
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "user_id", nullable = true)
+    private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "lifecycle_status", nullable = false)
+    private IdentityLifecycleStatus lifecycleStatus = IdentityLifecycleStatus.PENDING_PROFILE;
+
+    @Column(name = "lifecycle_version", nullable = false)
+    private Long lifecycleVersion = 0L;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "email_verification_required", nullable = false)
+    private Boolean emailVerificationRequired = false;
+
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
+    @Column(name = "user_status_sync_pending", nullable = false)
+    private Boolean userStatusSyncPending = false;
+
+    @Column(name = "user_status_sync_version", nullable = false)
+    private Long userStatusSyncVersion = 0L;
+
+    @Column(name = "user_status_sync_admin_id")
+    private Long userStatusSyncAdminId;
+
+    @Column(name = "user_status_sync_block_reason", columnDefinition = "TEXT")
+    private String userStatusSyncBlockReason;
+
+    @Column(name = "user_status_sync_attempts", nullable = false)
+    private Integer userStatusSyncAttempts = 0;
+
+    @Column(name = "user_status_sync_last_error", columnDefinition = "TEXT")
+    private String userStatusSyncLastError;
+
+    @Column(name = "simulation_actor", nullable = false)
+    private Boolean simulationActor = false;
+
+    @Column(name = "simulation_cohort_id")
+    private UUID simulationCohortId;
+
+    @Column(name = "active_simulation_run_id")
+    private UUID activeSimulationRunId;
+
+    @Column(name = "simulation_binding_version", nullable = false)
+    private Long simulationBindingVersion = 0L;
+
+    @Column(name = "user_status_sync_updated_at")
+    private LocalDateTime userStatusSyncUpdatedAt;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
+        if (this.lifecycleStatus == null) {
+            this.lifecycleStatus = IdentityLifecycleStatus.PENDING_PROFILE;
+        }
+        if (this.lifecycleVersion == null) {
+            this.lifecycleVersion = 0L;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Getters & Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public Boolean getEmailVerificationRequired() {
+        return emailVerificationRequired;
+    }
+
+    public void setEmailVerificationRequired(Boolean emailVerificationRequired) {
+        this.emailVerificationRequired = emailVerificationRequired;
+    }
+
+    public LocalDateTime getEmailVerifiedAt() {
+        return emailVerifiedAt;
+    }
+
+    public void setEmailVerifiedAt(LocalDateTime emailVerifiedAt) {
+        this.emailVerifiedAt = emailVerifiedAt;
+    }
+
+    public Boolean getUserStatusSyncPending() {
+        return userStatusSyncPending;
+    }
+
+    public void setUserStatusSyncPending(Boolean userStatusSyncPending) {
+        this.userStatusSyncPending = userStatusSyncPending;
+    }
+
+    public Long getUserStatusSyncVersion() {
+        return userStatusSyncVersion;
+    }
+
+    public void setUserStatusSyncVersion(Long userStatusSyncVersion) {
+        this.userStatusSyncVersion = userStatusSyncVersion;
+    }
+
+    public Long getUserStatusSyncAdminId() {
+        return userStatusSyncAdminId;
+    }
+
+    public void setUserStatusSyncAdminId(Long userStatusSyncAdminId) {
+        this.userStatusSyncAdminId = userStatusSyncAdminId;
+    }
+
+    public String getUserStatusSyncBlockReason() {
+        return userStatusSyncBlockReason;
+    }
+
+    public void setUserStatusSyncBlockReason(String userStatusSyncBlockReason) {
+        this.userStatusSyncBlockReason = userStatusSyncBlockReason;
+    }
+
+    public Integer getUserStatusSyncAttempts() {
+        return userStatusSyncAttempts;
+    }
+
+    public void setUserStatusSyncAttempts(Integer userStatusSyncAttempts) {
+        this.userStatusSyncAttempts = userStatusSyncAttempts;
+    }
+
+    public String getUserStatusSyncLastError() {
+        return userStatusSyncLastError;
+    }
+
+    public void setUserStatusSyncLastError(String userStatusSyncLastError) {
+        this.userStatusSyncLastError = userStatusSyncLastError;
+    }
+
+    public LocalDateTime getUserStatusSyncUpdatedAt() {
+        return userStatusSyncUpdatedAt;
+    }
+
+    public void setUserStatusSyncUpdatedAt(LocalDateTime userStatusSyncUpdatedAt) {
+        this.userStatusSyncUpdatedAt = userStatusSyncUpdatedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public IdentityLifecycleStatus getLifecycleStatus() { return lifecycleStatus; }
+    public void setLifecycleStatus(IdentityLifecycleStatus lifecycleStatus) { this.lifecycleStatus = lifecycleStatus; }
+    public Long getLifecycleVersion() { return lifecycleVersion; }
+    public void setLifecycleVersion(Long lifecycleVersion) { this.lifecycleVersion = lifecycleVersion; }
+
+    public Boolean getSimulationActor() { return simulationActor; }
+    public void setSimulationActor(Boolean simulationActor) { this.simulationActor = simulationActor; }
+    public UUID getSimulationCohortId() { return simulationCohortId; }
+    public void setSimulationCohortId(UUID simulationCohortId) { this.simulationCohortId = simulationCohortId; }
+    public UUID getActiveSimulationRunId() { return activeSimulationRunId; }
+    public void setActiveSimulationRunId(UUID activeSimulationRunId) { this.activeSimulationRunId = activeSimulationRunId; }
+    public Long getSimulationBindingVersion() { return simulationBindingVersion; }
+    public void setSimulationBindingVersion(Long simulationBindingVersion) { this.simulationBindingVersion = simulationBindingVersion; }
+
+    public SimulationContext simulationContext() {
+        if (!Boolean.TRUE.equals(simulationActor) || activeSimulationRunId == null) {
+            return SimulationContext.real();
+        }
+        return new SimulationContext(SimulationContext.ExecutionMode.SIMULATION, activeSimulationRunId,
+                simulationCohortId, simulationBindingVersion);
+    }
+}
