@@ -43,7 +43,7 @@ class AuthSessionRepositoryBulkUpdateTest {
         sessionRepository.save(session(account, "web", "family-3"));
         sessionRepository.flush();
 
-        LocalDateTime deviceRevokedAt = LocalDateTime.now();
+        LocalDateTime deviceRevokedAt = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS); // Postgres keeps microseconds
         assertThat(sessionRepository.deactivateActiveSessionsForDevice(
                 account.getId(), "phone", deviceRevokedAt)).isEqualTo(2);
 
