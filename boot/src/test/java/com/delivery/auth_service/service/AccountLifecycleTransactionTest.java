@@ -27,6 +27,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,13 +87,15 @@ class AccountLifecycleTransactionTest {
         account.setIsActive(true);
         account.setUserId(null);
 
-        when(authAccountRepository.findByIdForUpdate(3L)).thenReturn(Optional.of(account));
-        when(authAccountRepository.save(any(AuthAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(authSessionRepository.deactivateAllActiveSessions(eq(3L), any(LocalDateTime.class)))
-                .thenAnswer(invocation -> {
-                    assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
-                    return 1;
-                });
+        // doReturn/doAnswer stub without invoking the mock: the scheduled user-status sync
+        // runs on another thread against these same mocks, and when(mock.call()) can then
+        // bind the stub to that thread's call (WrongTypeOfReturnValue, CI only).
+        doReturn(Optional.of(account)).when(authAccountRepository).findByIdForUpdate(3L);
+        doAnswer(invocation -> invocation.getArgument(0)).when(authAccountRepository).save(any(AuthAccount.class));
+        doAnswer(invocation -> {
+            assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
+            return 1;
+        }).when(authSessionRepository).deactivateAllActiveSessions(eq(3L), any(LocalDateTime.class));
 
         lifecycle.block(3L, 1L, "fraud review");
 
