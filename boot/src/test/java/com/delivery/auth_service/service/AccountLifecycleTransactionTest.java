@@ -78,6 +78,11 @@ class AccountLifecycleTransactionTest {
     @MockBean
     private GoogleTokenVerifier googleTokenVerifier;
 
+    // No real scheduler: the 5 s user-status sync would otherwise call these mocks on
+    // another thread while the test stubs them (Mockito stubbing is not thread-safe).
+    @MockBean(name = "taskScheduler")
+    private org.springframework.scheduling.TaskScheduler taskScheduler;
+
     @Test
     void blockAccountExecutesBulkSessionUpdateInsideActiveTransaction() {
         AuthAccount account = new AuthAccount();
@@ -86,9 +91,6 @@ class AccountLifecycleTransactionTest {
         account.setIsActive(true);
         account.setUserId(null);
 
-        // doReturn/doAnswer stub without invoking the mock: the scheduled user-status sync
-        // runs on another thread against these same mocks, and when(mock.call()) can then
-        // bind the stub to that thread's call (WrongTypeOfReturnValue, CI only).
         doReturn(Optional.of(account)).when(authAccountRepository).findByIdForUpdate(3L);
         doAnswer(invocation -> invocation.getArgument(0)).when(authAccountRepository).save(any(AuthAccount.class));
         doAnswer(invocation -> {
