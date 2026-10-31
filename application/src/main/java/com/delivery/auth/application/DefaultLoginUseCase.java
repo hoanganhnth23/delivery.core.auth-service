@@ -31,10 +31,6 @@ public final class DefaultLoginUseCase implements LoginUseCase {
 
     @Override public AuthenticationResult login(LoginCommand command) {
         Objects.requireNonNull(command, "command");
-        return transactions.required(() -> loginInTransaction(command));
-    }
-
-    private AuthenticationResult loginInTransaction(LoginCommand command) {
         if (command.email() == null || command.password() == null) {
             throw new CredentialsRejected("Invalid email or password");
         }
@@ -58,6 +54,10 @@ public final class DefaultLoginUseCase implements LoginUseCase {
         if (account.userId() == null) {
             throw new CredentialsRejected("Account profile is not provisioned");
         }
+        return transactions.required(() -> persistLogin(account, command));
+    }
+
+    private AuthenticationResult persistLogin(AuthAccount account, LoginCommand command) {
         LocalDateTime revokedAt = LocalDateTime.now();
         refreshCredentials.revokeDevice(account.id(), command.deviceId().trim(), revokedAt);
         sessions.deactivateForAccountAndDevice(account.id(), command.deviceId().trim(), revokedAt);
